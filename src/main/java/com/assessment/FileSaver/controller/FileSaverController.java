@@ -58,7 +58,7 @@ public class FileSaverController {
     public ResponseEntity<?> postMethodName(@RequestParam("file") MultipartFile file,
             @RequestParam("passcode") String passcode) {
         if (file.getSize() > maxPermittedFileSize) {
-            return new ResponseEntity<String>("File too large", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity<String>("File too large", HttpStatus.BAD_REQUEST);
         }
         try (FileOutputStream fos = new FileOutputStream(sourcePath + file.getOriginalFilename())) {
             Cipher cipher = Cipher.getInstance(algorithm);
@@ -96,7 +96,7 @@ public class FileSaverController {
                         .body(resource);
             }
         } catch (BadPaddingException bpe) {
-            return new ResponseEntity<String>("bad passcode", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity<String>("bad passcode", HttpStatus.BAD_REQUEST);
         } catch (FileNotFoundException fnfe) {
             return new ResponseEntity<String>("No file found with this name", HttpStatus.NOT_FOUND);
         } catch (Exception e) {
