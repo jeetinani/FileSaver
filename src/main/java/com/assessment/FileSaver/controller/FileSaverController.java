@@ -51,6 +51,9 @@ public class FileSaverController {
     @Value("${filestorage.maximum.permitted.file.size:5000000}")
     private int maxPermittedFileSize;
 
+    @Value("${filestorage.maximum.storage.hours:1}")
+    private int maxPermittedStorageHours;
+
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> postMethodName(@RequestParam("file") MultipartFile file,
             @RequestParam("password") String password) {
@@ -76,7 +79,12 @@ public class FileSaverController {
     @GetMapping(path = "/retrieve/{fileName}")
     public ResponseEntity<?> getMethodName(@PathVariable(value = "fileName", required = true) String fileName,
             @RequestParam("password") String password) {
-        try (FileInputStream fileInputStream = new FileInputStream(new File(sourcePath + fileName))) {
+        File file = new File(sourcePath + fileName);
+        if(file.exists() && file.isFile() && System.currentTimeMillis()-file.lastModified()>(maxPermittedStorageHours*60*60*1000)){
+            file.delete();
+            return new ResponseEntity<String>("File too old", HttpStatus.NOT_FOUND);
+        }
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.DECRYPT_MODE, getKey(password));
             Resource resource = new ByteArrayResource(cipher.doFinal(fileInputStream.readAllBytes()));// new
