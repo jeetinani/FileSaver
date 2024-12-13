@@ -17,6 +17,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -34,14 +35,21 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileSaverController {
 
     Logger logger = LoggerFactory.getLogger(FileSaverController.class.getName());
-    private final String salt = "SaltAndPepper";
-    private final String sourcePath = "D:\\uploads\\";
+   
+    @Value("${cipher.key.salt:SaltAndPepper}")
+    private String salt;
+
+    @Value("${filestorage.base.path:D:\\uploads\\}")
+    private String sourcePath;
+    
+    @Value("${cipher.algorithm:AES}")
+    private String algorithm;
     
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<String> postMethodName(@RequestParam("file") MultipartFile file,
             @RequestParam("password") String password) {
         try (FileOutputStream fos = new FileOutputStream(sourcePath + file.getOriginalFilename())) {
-            Cipher cipher = Cipher.getInstance("AES");
+            Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.ENCRYPT_MODE, getKey(password));
             // file.transferTo(new File("D:\\uploads\\"+file.getOriginalFilename()));
             fos.write(cipher.doFinal(file.getBytes()));
@@ -56,7 +64,7 @@ public class FileSaverController {
     public ResponseEntity<?> getMethodName(@PathVariable(value = "fileName", required = true) String fileName,
             @RequestParam("password") String password) {
         try (FileInputStream fileInputStream = new FileInputStream(new File(sourcePath + fileName))){
-            Cipher cipher = Cipher.getInstance("AES");
+            Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.DECRYPT_MODE, getKey(password));
             Resource resource = new ByteArrayResource(cipher.doFinal(fileInputStream.readAllBytes()));// new UrlResource(filePath.toUri());
             if (resource.exists()) {
@@ -79,6 +87,6 @@ public class FileSaverController {
     private Key getKey(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
-        return (new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES"));
+        return (new SecretKeySpec(factory.generateSecret(spec).getEncoded(), algorithm));
     }
 }
