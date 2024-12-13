@@ -30,6 +30,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import com.assessment.response.UploadResponseDTO;
 
 @RestController
 public class FileSaverController {
@@ -46,18 +49,20 @@ public class FileSaverController {
     private String algorithm;
     
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<String> postMethodName(@RequestParam("file") MultipartFile file,
+    public ResponseEntity<?> postMethodName(@RequestParam("file") MultipartFile file,
             @RequestParam("password") String password) {
         try (FileOutputStream fos = new FileOutputStream(sourcePath + file.getOriginalFilename())) {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.ENCRYPT_MODE, getKey(password));
             // file.transferTo(new File("D:\\uploads\\"+file.getOriginalFilename()));
             fos.write(cipher.doFinal(file.getBytes()));
+            logger.warn(file.getOriginalFilename() + " Stored with password " + password);
+            String retrievePath = ServletUriComponentsBuilder.fromCurrentContextPath().replacePath("/retrieve/").toUriString();
+            return ResponseEntity.ok(new UploadResponseDTO("Uploaded",retrievePath+file.getOriginalFilename()+"?password=" + password));
         } catch (Exception e) {
-        logger.error("exception in upload", e);//,e.printStackTrace());
-            return ResponseEntity.internalServerError().build();
+            logger.error("exception in upload", e);//,e.printStackTrace());
         }
-        return ResponseEntity.ok(file.getOriginalFilename() + " Stored with password " + password);
+        return ResponseEntity.internalServerError().build();
     }
 
     @GetMapping(path = "/retrieve/{fileName}")
