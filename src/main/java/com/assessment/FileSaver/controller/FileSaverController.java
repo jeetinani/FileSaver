@@ -56,20 +56,20 @@ public class FileSaverController {
 
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> postMethodName(@RequestParam("file") MultipartFile file,
-            @RequestParam("password") String password) {
+            @RequestParam("passcode") String passcode) {
         if (file.getSize() > maxPermittedFileSize) {
             return new ResponseEntity<String>("File too large", HttpStatus.NOT_ACCEPTABLE);
         }
         try (FileOutputStream fos = new FileOutputStream(sourcePath + file.getOriginalFilename())) {
             Cipher cipher = Cipher.getInstance(algorithm);
-            cipher.init(Cipher.ENCRYPT_MODE, getKey(password));
+            cipher.init(Cipher.ENCRYPT_MODE, getKey(passcode));
             // file.transferTo(new File("D:\\uploads\\"+file.getOriginalFilename()));
             fos.write(cipher.doFinal(file.getBytes()));
-            logger.info(file.getOriginalFilename() + " Stored with password " + password);
+            logger.info(file.getOriginalFilename() + " Stored with passcode " + passcode);
             String retrievePath = ServletUriComponentsBuilder.fromCurrentContextPath().replacePath("/retrieve/")
                     .toUriString();
             return ResponseEntity.ok(new UploadResponseDTO("Uploaded",
-                    retrievePath + file.getOriginalFilename() + "?password=" + password));
+                    retrievePath + file.getOriginalFilename() + "?passcode=" + passcode));
         } catch (Exception e) {
             logger.error("exception in upload", e);// ,e.printStackTrace());
         }
@@ -78,7 +78,7 @@ public class FileSaverController {
 
     @GetMapping(path = "/retrieve/{fileName}")
     public ResponseEntity<?> getMethodName(@PathVariable(value = "fileName", required = true) String fileName,
-            @RequestParam("password") String password) {
+            @RequestParam("passcode") String passcode) {
         File file = new File(sourcePath + fileName);
         if(file.exists() && file.isFile() && System.currentTimeMillis()-file.lastModified()>(maxPermittedStorageHours*60*60*1000)){
             file.delete();
@@ -86,7 +86,7 @@ public class FileSaverController {
         }
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             Cipher cipher = Cipher.getInstance(algorithm);
-            cipher.init(Cipher.DECRYPT_MODE, getKey(password));
+            cipher.init(Cipher.DECRYPT_MODE, getKey(passcode));
             Resource resource = new ByteArrayResource(cipher.doFinal(fileInputStream.readAllBytes()));// new
                                                                                                       // UrlResource(filePath.toUri());
             if (resource.exists()) {
@@ -96,7 +96,7 @@ public class FileSaverController {
                         .body(resource);
             }
         } catch (BadPaddingException bpe) {
-            return new ResponseEntity<String>("bad password", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity<String>("bad passcode", HttpStatus.NOT_ACCEPTABLE);
         } catch (FileNotFoundException fnfe) {
             return new ResponseEntity<String>("No file found with this name", HttpStatus.NOT_FOUND);
         } catch (Exception e) {
@@ -106,9 +106,9 @@ public class FileSaverController {
         return ResponseEntity.notFound().build();
     }
 
-    private Key getKey(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private Key getKey(String passcode) throws NoSuchAlgorithmException, InvalidKeySpecException {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
+        KeySpec spec = new PBEKeySpec(passcode.toCharArray(), salt.getBytes(), 65536, 256);
         return (new SecretKeySpec(factory.generateSecret(spec).getEncoded(), algorithm));
     }
 }
