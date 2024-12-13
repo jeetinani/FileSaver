@@ -38,29 +38,37 @@ import com.assessment.response.UploadResponseDTO;
 public class FileSaverController {
 
     Logger logger = LoggerFactory.getLogger(FileSaverController.class.getName());
-   
+
     @Value("${cipher.key.salt:SaltAndPepper}")
     private String salt;
 
     @Value("${filestorage.base.path:D:\\uploads\\}")
     private String sourcePath;
-    
+
     @Value("${cipher.algorithm:AES}")
     private String algorithm;
-    
+
+    @Value("${filestorage.maximum.permitted.file.size:5000000}")
+    private int maxPermittedFileSize;
+
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> postMethodName(@RequestParam("file") MultipartFile file,
             @RequestParam("password") String password) {
+        if (file.getSize() > maxPermittedFileSize) {
+            return new ResponseEntity<String>("File too large", HttpStatus.NOT_ACCEPTABLE);
+        }
         try (FileOutputStream fos = new FileOutputStream(sourcePath + file.getOriginalFilename())) {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.ENCRYPT_MODE, getKey(password));
             // file.transferTo(new File("D:\\uploads\\"+file.getOriginalFilename()));
             fos.write(cipher.doFinal(file.getBytes()));
             logger.warn(file.getOriginalFilename() + " Stored with password " + password);
-            String retrievePath = ServletUriComponentsBuilder.fromCurrentContextPath().replacePath("/retrieve/").toUriString();
-            return ResponseEntity.ok(new UploadResponseDTO("Uploaded",retrievePath+file.getOriginalFilename()+"?password=" + password));
+            String retrievePath = ServletUriComponentsBuilder.fromCurrentContextPath().replacePath("/retrieve/")
+                    .toUriString();
+            return ResponseEntity.ok(new UploadResponseDTO("Uploaded",
+                    retrievePath + file.getOriginalFilename() + "?password=" + password));
         } catch (Exception e) {
-            logger.error("exception in upload", e);//,e.printStackTrace());
+            logger.error("exception in upload", e);// ,e.printStackTrace());
         }
         return ResponseEntity.internalServerError().build();
     }
@@ -68,22 +76,23 @@ public class FileSaverController {
     @GetMapping(path = "/retrieve/{fileName}")
     public ResponseEntity<?> getMethodName(@PathVariable(value = "fileName", required = true) String fileName,
             @RequestParam("password") String password) {
-        try (FileInputStream fileInputStream = new FileInputStream(new File(sourcePath + fileName))){
+        try (FileInputStream fileInputStream = new FileInputStream(new File(sourcePath + fileName))) {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.DECRYPT_MODE, getKey(password));
-            Resource resource = new ByteArrayResource(cipher.doFinal(fileInputStream.readAllBytes()));// new UrlResource(filePath.toUri());
+            Resource resource = new ByteArrayResource(cipher.doFinal(fileInputStream.readAllBytes()));// new
+                                                                                                      // UrlResource(filePath.toUri());
             if (resource.exists()) {
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_DISPOSITION,
                                 "attachment; filename=\"" + fileName + "\"")
                         .body(resource);
             }
-        } catch(BadPaddingException bpe){
-            return new ResponseEntity<String>("bad password",HttpStatus.NOT_ACCEPTABLE);
-        }catch(FileNotFoundException fnfe){
-            return new ResponseEntity<String>("No file found with this name",HttpStatus.NOT_FOUND);
-        }catch(Exception e){
-            logger.error("exception in retrieve for "+fileName, e);
+        } catch (BadPaddingException bpe) {
+            return new ResponseEntity<String>("bad password", HttpStatus.NOT_ACCEPTABLE);
+        } catch (FileNotFoundException fnfe) {
+            return new ResponseEntity<String>("No file found with this name", HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            logger.error("exception in retrieve for " + fileName, e);
             return ResponseEntity.internalServerError().build();
         }
         return ResponseEntity.notFound().build();
