@@ -62,7 +62,7 @@ public class FileSaverController {
             cipher.init(Cipher.ENCRYPT_MODE, getKey(password));
             // file.transferTo(new File("D:\\uploads\\"+file.getOriginalFilename()));
             fos.write(cipher.doFinal(file.getBytes()));
-            logger.warn(file.getOriginalFilename() + " Stored with password " + password);
+            logger.info(file.getOriginalFilename() + " Stored with password " + password);
             String retrievePath = ServletUriComponentsBuilder.fromCurrentContextPath().replacePath("/retrieve/")
                     .toUriString();
             return ResponseEntity.ok(new UploadResponseDTO("Uploaded",
