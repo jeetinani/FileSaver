@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.assessment.FileSaver.service.EncryptionService;
@@ -36,6 +37,11 @@ public class FileSaverController {
 
     @Autowired
     private StorageService storageService;
+
+    @GetMapping("/")
+    public ModelAndView getMethodName() {
+        return new ModelAndView("redirect:/swagger-ui/index.html");
+    }
 
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> postMethodName(@RequestParam("file") MultipartFile file,
