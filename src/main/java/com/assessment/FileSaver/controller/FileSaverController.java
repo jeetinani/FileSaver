@@ -22,6 +22,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.assessment.response.UploadResponseDTO;
+
+import jakarta.annotation.PreDestroy;
 
 @RestController
 public class FileSaverController {
@@ -143,6 +146,18 @@ public class FileSaverController {
     public boolean expiryCheck(File file) {
         return file.exists() && file.isFile() && System.currentTimeMillis()
                 - file.lastModified() > (maxPermittedStorageHours * 60 * 60 * 1000);
+    }
+
+    @PreDestroy
+    public void cleanUp() {
+        try {
+            File f = Paths.get(sourcePath).toFile();
+            if (f.exists() && f.isDirectory()) {
+                FileUtils.cleanDirectory(f);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private Key getKey(String passcode) throws NoSuchAlgorithmException, InvalidKeySpecException {
