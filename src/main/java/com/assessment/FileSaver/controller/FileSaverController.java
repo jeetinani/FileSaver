@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,7 +12,6 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.util.stream.Stream;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -65,7 +65,21 @@ public class FileSaverController {
         if (file.getSize() > maxPermittedFileSize) {
             return new ResponseEntity<String>("File too large", HttpStatus.BAD_REQUEST);
         }
-        try (FileOutputStream fos = new FileOutputStream(sourcePath + file.getOriginalFilename())) {
+        Path directory = Paths.get(sourcePath);
+        if (!Files.exists(directory)) {
+            try {
+                Files.createDirectories(directory);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+        // Create the file in the specified directory
+        Path filePath = directory.resolve(file.getOriginalFilename());
+        // Files.write(filePath, csvContent.getBytes(StandardCharsets.UTF_8));
+
+        try (FileOutputStream fos = new FileOutputStream(filePath.toString())) {// sourcePath + file.getOriginalFilename())) {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.ENCRYPT_MODE, getKey(passcode));
             // file.transferTo(new File("D:\\uploads\\"+file.getOriginalFilename()));
@@ -92,7 +106,7 @@ public class FileSaverController {
          * return new ResponseEntity<String>("File too old", HttpStatus.NOT_FOUND);
          * }
          */
-        try (FileInputStream fileInputStream = new FileInputStream(new File(sourcePath + fileName))) {
+        try (FileInputStream fileInputStream = new FileInputStream(Paths.get(sourcePath).resolve(fileName).toString())) {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.DECRYPT_MODE, getKey(passcode));
             Resource resource = new ByteArrayResource(cipher.doFinal(fileInputStream.readAllBytes()));// new
@@ -114,7 +128,7 @@ public class FileSaverController {
         return ResponseEntity.notFound().build();
     }
 
-    @Scheduled(fixedRateString="${filestorage.removal.scheduleRate:3600000}")
+    @Scheduled(fixedRateString = "${filestorage.removal.scheduleRate:3600000}")
     private void removeOldFiles() {
         // Set<File> fileSet = new HashSet<>();
         File[] files = new File(sourcePath).listFiles(this::expiryCheck);
@@ -126,18 +140,22 @@ public class FileSaverController {
              * }
              * }
              */
-            //stream.map(Path::toFile).filter(file -> file.exists() && file.isFile() && expiryCheck(file)).forEach(File::delete);
+            // stream.map(Path::toFile).filter(file -> file.exists() && file.isFile() &&
+            // expiryCheck(file)).forEach(File::delete);
             // Iterator<Path> iter = stream.iterator();
             // while(iter.)
-            for(File file : files)Files.delete(file.toPath());
+            if (files == null || files.length == 0)
+                return;
+            for (File file : files)
+                Files.delete(file.toPath());
         } catch (Exception e) {
             logger.error("old file removal failed", e);
         }
     }
 
-    public boolean expiryCheck(File file){
-        return file.exists()  && file.isFile() && System.currentTimeMillis()
-                    - file.lastModified() > (maxPermittedStorageHours * 60 * 60 * 1000);
+    public boolean expiryCheck(File file) {
+        return file.exists() && file.isFile() && System.currentTimeMillis()
+                - file.lastModified() > (maxPermittedStorageHours * 60 * 60 * 1000);
     }
 
     private Key getKey(String passcode) throws NoSuchAlgorithmException, InvalidKeySpecException {
