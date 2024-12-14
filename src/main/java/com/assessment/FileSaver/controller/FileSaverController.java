@@ -12,6 +12,9 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -43,6 +46,7 @@ import com.assessment.response.UploadResponseDTO;
 public class FileSaverController {
 
     Logger logger = LoggerFactory.getLogger(FileSaverController.class.getName());
+    private final Map<UUID, String> storageMap = new HashMap<>();
 
     @Value("${cipher.key.salt:SaltAndPepper}")
     private String salt;
@@ -70,59 +74,54 @@ public class FileSaverController {
             try {
                 Files.createDirectories(directory);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
 
-        // Create the file in the specified directory
-        Path filePath = directory.resolve(file.getOriginalFilename());
-        // Files.write(filePath, csvContent.getBytes(StandardCharsets.UTF_8));
+        UUID uuid = UUID.randomUUID();
+        storageMap.put(uuid, file.getOriginalFilename());
+        Path filePath = directory.resolve(uuid.toString());
 
-        try (FileOutputStream fos = new FileOutputStream(filePath.toString())) {// sourcePath + file.getOriginalFilename())) {
+        try (FileOutputStream fos = new FileOutputStream(filePath.toString())) {// sourcePath +
+                                                                                // file.getOriginalFilename())) {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.ENCRYPT_MODE, getKey(passcode));
-            // file.transferTo(new File("D:\\uploads\\"+file.getOriginalFilename()));
             fos.write(cipher.doFinal(file.getBytes()));
             logger.info(file.getOriginalFilename() + " Stored with passcode " + passcode);
             String retrievePath = ServletUriComponentsBuilder.fromCurrentContextPath().replacePath("/retrieve/")
                     .toUriString();
             return ResponseEntity.ok(new UploadResponseDTO("Uploaded",
-                    retrievePath + file.getOriginalFilename() + "?passcode=" + passcode));
+                    retrievePath + uuid.toString() + "?passcode=" + passcode));
         } catch (Exception e) {
             logger.error("exception in upload", e);// ,e.printStackTrace());
         }
         return ResponseEntity.internalServerError().build();
     }
 
-    @GetMapping(path = "/retrieve/{fileName}")
-    public ResponseEntity<?> getMethodName(@PathVariable(value = "fileName", required = true) String fileName,
+    @GetMapping(path = "/retrieve/{uuid}")
+    public ResponseEntity<?> getMethodName(@PathVariable(value = "uuid", required = true) UUID uuid,
             @RequestParam("passcode") String passcode) {
-        /*
-         * if(file.exists() && file.isFile() &&
-         * System.currentTimeMillis()-file.lastModified()>(maxPermittedStorageHours*60*
-         * 60*1000)){
-         * file.delete();
-         * return new ResponseEntity<String>("File too old", HttpStatus.NOT_FOUND);
-         * }
-         */
-        try (FileInputStream fileInputStream = new FileInputStream(Paths.get(sourcePath).resolve(fileName).toString())) {
+        if (!storageMap.containsKey(uuid)) {
+            return new ResponseEntity<String>("No file found with this name", HttpStatus.NOT_FOUND);
+        }
+        try (FileInputStream fileInputStream = new FileInputStream(
+                Paths.get(sourcePath).resolve(uuid.toString()).toString())) {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.DECRYPT_MODE, getKey(passcode));
-            Resource resource = new ByteArrayResource(cipher.doFinal(fileInputStream.readAllBytes()));// new
-                                                                                                      // UrlResource(filePath.toUri());
+            Resource resource = new ByteArrayResource(cipher.doFinal(fileInputStream.readAllBytes()));
             if (resource.exists()) {
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_DISPOSITION,
-                                "attachment; filename=\"" + fileName + "\"")
+                                "attachment; filename=\"" + storageMap.get(uuid) + "\"")
                         .body(resource);
             }
         } catch (BadPaddingException bpe) {
             return new ResponseEntity<String>("bad passcode", HttpStatus.BAD_REQUEST);
         } catch (FileNotFoundException fnfe) {
+            storageMap.remove(uuid);
             return new ResponseEntity<String>("No file found with this name", HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            logger.error("exception in retrieve for " + fileName, e);
+            logger.error("exception in retrieve for file " + uuid, e);
             return ResponseEntity.internalServerError().build();
         }
         return ResponseEntity.notFound().build();
@@ -130,20 +129,8 @@ public class FileSaverController {
 
     @Scheduled(fixedRateString = "${filestorage.removal.scheduleRate:3600000}")
     private void removeOldFiles() {
-        // Set<File> fileSet = new HashSet<>();
         File[] files = new File(sourcePath).listFiles(this::expiryCheck);
-        try {// (Stream<Path> stream = Files.list(Paths.get(sourcePath))) {
-            /*
-             * for (Path path : stream) {
-             * if (!Files.isDirectory(path)) {
-             * fileSet.add(path.toFile());
-             * }
-             * }
-             */
-            // stream.map(Path::toFile).filter(file -> file.exists() && file.isFile() &&
-            // expiryCheck(file)).forEach(File::delete);
-            // Iterator<Path> iter = stream.iterator();
-            // while(iter.)
+        try {
             if (files == null || files.length == 0)
                 return;
             for (File file : files)
