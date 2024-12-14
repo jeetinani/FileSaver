@@ -4,10 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.stream.Stream;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -24,6 +28,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -79,12 +84,15 @@ public class FileSaverController {
     @GetMapping(path = "/retrieve/{fileName}")
     public ResponseEntity<?> getMethodName(@PathVariable(value = "fileName", required = true) String fileName,
             @RequestParam("passcode") String passcode) {
-        File file = new File(sourcePath + fileName);
-        if(file.exists() && file.isFile() && System.currentTimeMillis()-file.lastModified()>(maxPermittedStorageHours*60*60*1000)){
-            file.delete();
-            return new ResponseEntity<String>("File too old", HttpStatus.NOT_FOUND);
-        }
-        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+        /*
+         * if(file.exists() && file.isFile() &&
+         * System.currentTimeMillis()-file.lastModified()>(maxPermittedStorageHours*60*
+         * 60*1000)){
+         * file.delete();
+         * return new ResponseEntity<String>("File too old", HttpStatus.NOT_FOUND);
+         * }
+         */
+        try (FileInputStream fileInputStream = new FileInputStream(new File(sourcePath + fileName))) {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.DECRYPT_MODE, getKey(passcode));
             Resource resource = new ByteArrayResource(cipher.doFinal(fileInputStream.readAllBytes()));// new
@@ -104,6 +112,32 @@ public class FileSaverController {
             return ResponseEntity.internalServerError().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @Scheduled(fixedRateString="${filestorage.removal.scheduleRate:3600000}")
+    private void removeOldFiles() {
+        // Set<File> fileSet = new HashSet<>();
+        File[] files = new File(sourcePath).listFiles(this::expiryCheck);
+        try {// (Stream<Path> stream = Files.list(Paths.get(sourcePath))) {
+            /*
+             * for (Path path : stream) {
+             * if (!Files.isDirectory(path)) {
+             * fileSet.add(path.toFile());
+             * }
+             * }
+             */
+            //stream.map(Path::toFile).filter(file -> file.exists() && file.isFile() && expiryCheck(file)).forEach(File::delete);
+            // Iterator<Path> iter = stream.iterator();
+            // while(iter.)
+            for(File file : files)Files.delete(file.toPath());
+        } catch (Exception e) {
+            logger.error("old file removal failed", e);
+        }
+    }
+
+    public boolean expiryCheck(File file){
+        return file.exists()  && file.isFile() && System.currentTimeMillis()
+                    - file.lastModified() > (maxPermittedStorageHours * 60 * 60 * 1000);
     }
 
     private Key getKey(String passcode) throws NoSuchAlgorithmException, InvalidKeySpecException {
