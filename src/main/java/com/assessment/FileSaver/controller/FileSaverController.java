@@ -41,7 +41,7 @@ public class FileSaverController {
     public ResponseEntity<?> postMethodName(@RequestParam("file") MultipartFile file,
             @RequestParam("passcode") String passcode) {
         try {
-            UUID uuid = storageService.saveFile(encryptionService.encrypt(file, passcode), passcode);
+            UUID uuid = storageService.saveFile(encryptionService.encrypt(file, passcode), file.getOriginalFilename());
             logger.info(file.getOriginalFilename() + " Stored with passcode " + passcode);
             String retrievePath = ServletUriComponentsBuilder.fromCurrentContextPath().replacePath("/retrieve/")
                     .toUriString();
