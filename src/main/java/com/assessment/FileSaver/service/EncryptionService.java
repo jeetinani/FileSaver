@@ -1,15 +1,14 @@
 package com.assessment.FileSaver.service;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -35,18 +34,22 @@ public class EncryptionService {
     @Value("${filestorage.base.path:./uploads}")
     private String sourcePath;
 
-    public byte[] encrypt(MultipartFile input, String passcode) throws IllegalBlockSizeException, BadPaddingException, IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException {
+    public byte[] encrypt(MultipartFile input, String passcode)
+            throws IllegalBlockSizeException, BadPaddingException, IOException, NoSuchAlgorithmException,
+            NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException {
         Cipher cipher = Cipher.getInstance(algorithm);
         cipher.init(Cipher.ENCRYPT_MODE, getKey(passcode));
         return cipher.doFinal(input.getBytes());
     }
 
-    public byte[] decrypt(UUID uuid, String passcode) throws FileNotFoundException, IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException{
-        try(FileInputStream fileInputStream = new FileInputStream(
-            Paths.get(sourcePath).resolve(uuid.toString()).toString())) {
+    public byte[] decrypt(File file, String passcode)
+            throws FileNotFoundException, IOException, NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException {
+
+        try (FileInputStream fis = new FileInputStream(file)) {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.DECRYPT_MODE, getKey(passcode));
-            return cipher.doFinal(fileInputStream.readAllBytes());
+            return cipher.doFinal(fis.readAllBytes());
         }
     }
 
