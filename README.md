@@ -67,4 +67,4 @@ Traffic on port 8081 and http traffic needs to be enabled on the host machine.
 
 --- 
 Sample System Architecture Diagram of a simple cloud deployment in production would look something like this.
-<img src="https://github.com/jeetinani/FileSaver/blob/main/CloudProdSystemArchitecture.png" title="Architecture" alt="Architecture" width="400" height="400"/>&nbsp;
+<img src="https://github.com/jeetinani/FileSaver/blob/main/CloudProdSystemArchitecture.png" title="Architecture" alt="Architecture" width="523" height="343"/>&nbsp;
