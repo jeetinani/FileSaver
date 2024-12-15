@@ -7,7 +7,7 @@ The ReactJS frontend is packed into a static build and copied into Spring projec
 The files are deleted after 48 hours of upload.
 
 ## **Application**
-The application is currently hosted at <a href =http://34.100.224.156:8081/> FileSaver</a>.
+The application is currently hosted at <a href =http://34.100.224.156:8081 > FileSaver</a>.
 
 There are 2 actions to be performed
 1. Upload a file along with a passcode for encryption.This will return a unique url to the file.
