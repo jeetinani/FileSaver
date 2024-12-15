@@ -38,10 +38,10 @@ public class FileSaverController {
     @Autowired
     private StorageService storageService;
 
-    @GetMapping("/")
+    /* @GetMapping("/")
     public ModelAndView getMethodName() {
         return new ModelAndView("redirect:/swagger-ui/index.html");
-    }
+    } */
 
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> postMethodName(@RequestParam("file") MultipartFile file,
@@ -49,16 +49,21 @@ public class FileSaverController {
         try {
             UUID uuid = storageService.saveFile(encryptionService.encrypt(file, passcode), file.getOriginalFilename());
             logger.info(file.getOriginalFilename() + " Stored with passcode " + passcode);
-            String retrievePath = ServletUriComponentsBuilder.fromCurrentContextPath().replacePath("/retrieve/")
+            String retrievePath = ServletUriComponentsBuilder.fromCurrentContextPath().replacePath("/download/")
                     .toUriString();
             return ResponseEntity.ok(new UploadResponseDTO("Uploaded",
-                    retrievePath + uuid.toString() + "?passcode=" + passcode));
+                    retrievePath + uuid.toString()));
         } catch (IllegalArgumentException iae) {
             return new ResponseEntity<String>("File too large", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             logger.error("exception in upload", e);
         }
         return ResponseEntity.internalServerError().build();
+    }
+
+    @GetMapping(path="/download/{uuid}")
+    public ModelAndView getMethodName(@PathVariable(value = "uuid", required = true) String uuid) {
+        return new ModelAndView("redirect:/?uuid="+uuid);
     }
 
     @GetMapping(path = "/retrieve/{uuid}")
