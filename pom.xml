@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.4.0</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.assessment</groupId>
 	<artifactId>FileSaver</artifactId>
@@ -28,7 +28,6 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
-		<!-- <java.version>17</java.version> -->
 		<frontend-src-dir>${project.basedir}/src/main/frontend</frontend-src-dir>
 		<frontend-build-dir>${project.basedir}/src/main/frontend/build</frontend-build-dir>
 	</properties>
@@ -37,22 +36,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency> -->
-		<!-- <dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-		</dependency> -->
-
-		<!-- <dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-rest-hal-browser</artifactId>
-			<version>3.3.9.RELEASE</version>
-		</dependency> -->
-			<!-- can now invoke HAL browser at http://localhost:8081/browser/index.html#/ -->
-		
 		 <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>

@@ -2,12 +2,11 @@ package com.assessment.response;
 
 import java.io.Serializable;
 
-public class UploadResponseDTO implements Serializable{
-    
+public class UploadResponseDTO implements Serializable {
+
     private String uploadStatus;
     private String retrievePath;
 
-    
     public UploadResponseDTO() {
     }
 
@@ -15,18 +14,21 @@ public class UploadResponseDTO implements Serializable{
         this.uploadStatus = uploadStatus;
         this.retrievePath = retrievePath;
     }
+
     public String getUploadStatus() {
         return uploadStatus;
     }
+
     public void setUploadStatus(String uploadStatus) {
         this.uploadStatus = uploadStatus;
     }
+
     public String getRetrievePath() {
         return retrievePath;
     }
+
     public void setRetrievePath(String retrievePath) {
         this.retrievePath = retrievePath;
     }
 
-    
 }

@@ -10,7 +10,6 @@ function App() {
     <Routes>
       <Route path='/' element={<Layout />}>
         <Route index path='/' element={<Upload />} />
-        {/* <Route path='/:uuid' element={<Retreive/>} /> */}
       </Route>
     </Routes>
   );

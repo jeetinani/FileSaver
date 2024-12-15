@@ -29,11 +29,9 @@ export default function Upload() {
         })
             .then(resp => {
                 setAlert("");
-                //setDownloadLink(resp.data.retrievePath);
                 setDownloadLink(<><p>Download link</p><a href={resp.data.retrievePath} target="_blank" rel="noopener noreferrer">{resp.data.retrievePath}</a></>);
                             
             }).catch((error) => {
-                //console.log(JSON.stringify(error));
                 setDownloadLink("");
                 console.error("Login failed:", error);
                 if (error.response.status === HttpStatusCode.BadRequest) {
