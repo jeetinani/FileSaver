@@ -7,13 +7,13 @@ The ReactJS frontend is packed into a static build and copied into Spring projec
 The files are deleted after 48 hours of upload.
 
 ## **Application**
-The application is currently hosted at `http://34.100.224.156:8081/`.
+The application is currently hosted at <a href =http://34.100.224.156:8081/> FileSaver</a>.
 
 There are 2 actions to be performed
 1. Upload a file along with a passcode for encryption.This will return a unique url to the file.
 2. Using the URL received before, we need to provide the passcode  to download the file.
 
-The swagger for the application can be accessed as `http://34.100.224.156:8081/swagger-ui/index.htmls`
+The swagger for the application can be accessed as <a href =http://34.100.224.156:8081/swagger-ui/index.html> FileSaver Swagger</a>
 
 ---
 
