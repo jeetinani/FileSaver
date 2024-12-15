@@ -7,7 +7,6 @@ import javax.crypto.BadPaddingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -36,7 +35,6 @@ public class FileSaverController {
 
     private StorageService storageService;
 
-
     public FileSaverController(EncryptionService encryptionService, StorageService storageService) {
         this.encryptionService = encryptionService;
         this.storageService = storageService;
@@ -60,9 +58,9 @@ public class FileSaverController {
         return ResponseEntity.internalServerError().build();
     }
 
-    @GetMapping(path="/download/{uuid}")
+    @GetMapping(path = "/download/{uuid}")
     public ModelAndView downloadLink(@PathVariable(value = "uuid", required = true) String uuid) {
-        return new ModelAndView("redirect:/?uuid="+uuid);
+        return new ModelAndView("redirect:/?uuid=" + uuid);
     }
 
     @GetMapping(path = "/retrieve/{uuid}")
