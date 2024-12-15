@@ -1,8 +1,7 @@
 import axios, { HttpStatusCode } from "axios";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import Retreive from "./Retreive";
 import { useLocation } from "react-router-dom";
+import Retreive from "./Retreive";
 
 
 
@@ -10,7 +9,6 @@ export default function Upload() {
 
     const [alert, setAlert] = useState("");
     const [downloadLink, setDownloadLink] = useState("");
-    const [downloadHere, setdownloadHere] = useState("");
 
 
     function useQuery() {
@@ -31,14 +29,15 @@ export default function Upload() {
         })
             .then(resp => {
                 setAlert("");
-                setDownloadLink(resp.data.retrievePath);
-                setdownloadHere("Download link : "+resp.data.retrievePath);
+                //setDownloadLink(resp.data.retrievePath);
+                setDownloadLink(<><p>Download link</p><a href={resp.data.retrievePath} target="_blank" rel="noopener noreferrer">{resp.data.retrievePath}</a></>);
+                            
             }).catch((error) => {
                 //console.log(JSON.stringify(error));
                 console.error("Login failed:", error);
                 if (error.response.status === HttpStatusCode.BadRequest) {
                     setAlert("File too large");
-                }else{
+                } else {
                     setAlert("Failed");
                 }
             });
@@ -68,7 +67,7 @@ export default function Upload() {
                                 {alert}
                             </div>
                             <div>
-                                <a href={downloadLink} target="_blank" rel="noopener noreferrer">{downloadHere}</a>
+                            {downloadLink}
                             </div>
                         </form>
                     </div>

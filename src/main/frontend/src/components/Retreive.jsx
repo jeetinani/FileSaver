@@ -1,63 +1,34 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
 import axios, { HttpStatusCode } from "axios";
+import { saveAs } from "file-saver";
+import { useState } from "react";
 
 export default function Retreive({ uuid }) {
 
     const [alert, setAlert] = useState("");
 
-    const downloadHandler = async (e) => {
+    const downloadHandler = (e) => {
+
         e.preventDefault();
-
-        try {
-            const response = await axios.get(`/retrieve/${uuid}?passcode=`+e.target.passcode.value, {
-                responseType: "blob",
-            });
-
-            const contentDisposition = response.headers["content-disposition"];
-            const fileName = contentDisposition
+        axios.get(`/retrieve/${uuid}?passcode=` + e.target.passcode.value, {
+            responseType: 'blob'
+        }).then(response => {
+            const contentDisposition = response.headers['content-disposition'];
+            const filename = contentDisposition
                 ? contentDisposition.split("filename=")[1]?.replace(/"/g, "")
                 : "downloaded_file";
 
-            const blob = new Blob([response.data], { type: response.headers["content-type"] });
-
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", fileName); 
-            document.body.appendChild(link);
-            link.click();
-
-            link.remove();
-            window.URL.revokeObjectURL(url);
-
-
-            /* axios.get("/retrieve/"+uuid+"?passcode="+e.target.passcode.value)
-    .then(resp=>{
-                setAlert("File Downloaded");
-            }).catch((error) => {
-                // Handle errors, if any
-                //console.log(JSON.stringify(error));
+            saveAs(response.data, filename);
+        })
+            .catch(error => {
                 console.error("Login failed:", error);
                 if (error.response.status === HttpStatusCode.BadRequest) {
                     setAlert("Invalid Passcode");
-                }else if (error.response.status === HttpStatusCode.NotFound) {
+                } else if (error.response.status === HttpStatusCode.NotFound) {
                     setAlert("File not found");
-                }else {
+                } else {
                     setAlert("download failed");
                 }
-            } */
-        } catch (error) {
-            //console.log(JSON.stringify(error));
-            console.error("Login failed:", error);
-            if (error.response.status === HttpStatusCode.BadRequest) {
-                setAlert("Invalid Passcode");
-            } else if (error.response.status === HttpStatusCode.NotFound) {
-                setAlert("File not found");
-            } else {
-                setAlert("download failed");
-            }
-        }
+            });
     };
 
     return (
