@@ -55,10 +55,16 @@ API endpoints -
 Further enhancements - 
 1. Files can be stored in a cloud bucket storage which allows for setting file expiry settings, and frees up system memory.
 2. Users can be provided with links which directly download the file, skipping the need for passcode. 
-4. Creating a login and authentication mechanism for users can allow them to view their files.
+3. Creating a login and authentication mechanism for users can allow them to view their files.
+4. Having a persistent data storage for user information, file metadata, user keys, etc.
+5. A serverless script running at a particular can remvoe old files and notify file owners about the same.
 
 ---
 Deployment Mechanism - <br>
 Using maven plugins, the frontend ReactJS build is transferred into static folder of springboot application which is packaged into a deploy ready jar.<br>
 This jar is placed into a cloud linux machine and run using systemctl services.<br>
 Traffic on port 8081 and http traffic needs to be enabled on the host machine.
+
+--- 
+Sample System Architecture Diagram of a simple cloud deployment in production would look something like this.
+<img src="https://github.com/jeetinani/FileSaver/blob/main/CloudProdSystemArchitecture.png" title="Architecture" alt="Architecture" width="400" height="400"/>&nbsp;
