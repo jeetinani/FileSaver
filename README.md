@@ -2,9 +2,9 @@ Hi,
 
 ### This is as simple File Storage Project built SpringBoot(backend) and ReactJS(frontend).
 
-This project takes a file and a passcode, ecrypts the file and stores it.
-The ReactJS frontend is packed into a static build and copied into Spring project's static folder.
-The files are deleted after 48 hours of upload.
+This project takes a file and a passcode, ecrypts the file and stores it.The files are deleted after 48 hours of upload.
+The ReactJS frontend is packed into a static build and copied into Spring project's static folder. All of this happens within single maven package job
+
 
 ## **Application**
 The application is currently hosted at <a href =http://34.100.224.156:8081 > FileSaver</a>.
