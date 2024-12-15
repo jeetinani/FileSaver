@@ -1,11 +1,16 @@
 package com.assessment.response;
 
-public class UploadResponseDTO {
+import java.io.Serializable;
+
+public class UploadResponseDTO implements Serializable{
     
     private String uploadStatus;
     private String retrievePath;
 
     
+    public UploadResponseDTO() {
+    }
+
     public UploadResponseDTO(String uploadStatus, String retrievePath) {
         this.uploadStatus = uploadStatus;
         this.retrievePath = retrievePath;

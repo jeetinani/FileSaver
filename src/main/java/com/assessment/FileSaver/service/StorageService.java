@@ -23,14 +23,19 @@ import jakarta.annotation.PreDestroy;
 @Component
 public class StorageService {
 
-    @Value("${filestorage.base.path:./uploads}")
     private String sourcePath;
 
-    @Value("${filestorage.maximum.storage.hours:1}")
     private int maxPermittedStorageHours;
 
-    @Value("${filestorage.maximum.permitted.file.size:5000000}")
     private int maxPermittedFileSize;
+
+    public StorageService(@Value("${filestorage.base.path:./uploads}") String sourcePath,
+            @Value("${filestorage.maximum.storage.hours:1}") int maxPermittedStorageHours,
+            @Value("${filestorage.maximum.permitted.file.size:5000000}") int maxPermittedFileSize) {
+        this.sourcePath = sourcePath;
+        this.maxPermittedStorageHours = maxPermittedStorageHours;
+        this.maxPermittedFileSize = maxPermittedFileSize;
+    }
 
     Logger logger = LoggerFactory.getLogger(StorageService.class.getName());
 

@@ -32,19 +32,18 @@ public class FileSaverController {
 
     Logger logger = LoggerFactory.getLogger(FileSaverController.class.getName());
 
-    @Autowired
     private EncryptionService encryptionService;
 
-    @Autowired
     private StorageService storageService;
 
-    /* @GetMapping("/")
-    public ModelAndView getMethodName() {
-        return new ModelAndView("redirect:/swagger-ui/index.html");
-    } */
+
+    public FileSaverController(EncryptionService encryptionService, StorageService storageService) {
+        this.encryptionService = encryptionService;
+        this.storageService = storageService;
+    }
 
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<?> postMethodName(@RequestParam("file") MultipartFile file,
+    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file,
             @RequestParam("passcode") String passcode) {
         try {
             UUID uuid = storageService.saveFile(encryptionService.encrypt(file, passcode), file.getOriginalFilename());
@@ -62,12 +61,12 @@ public class FileSaverController {
     }
 
     @GetMapping(path="/download/{uuid}")
-    public ModelAndView getMethodName(@PathVariable(value = "uuid", required = true) String uuid) {
+    public ModelAndView downloadLink(@PathVariable(value = "uuid", required = true) String uuid) {
         return new ModelAndView("redirect:/?uuid="+uuid);
     }
 
     @GetMapping(path = "/retrieve/{uuid}")
-    public ResponseEntity<?> getMethodName(@PathVariable(value = "uuid", required = true) UUID uuid,
+    public ResponseEntity<?> download(@PathVariable(value = "uuid", required = true) UUID uuid,
             @RequestParam("passcode") String passcode) {
         try {
             Resource resource = new ByteArrayResource(

@@ -25,12 +25,16 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 public class EncryptionService {
 
-    @Value("${cipher.key.salt:SaltAndPepper}")
     private String salt;
 
-    @Value("${cipher.algorithm:AES}")
     private String algorithm;
-    
+
+    public EncryptionService(@Value("${cipher.key.salt:SaltAndPepper}") String salt,
+            @Value("${cipher.algorithm:AES}") String algorithm) {
+        this.salt = salt;
+        this.algorithm = algorithm;
+    }
+
     public byte[] encrypt(MultipartFile input, String passcode)
             throws IllegalBlockSizeException, BadPaddingException, IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException {
