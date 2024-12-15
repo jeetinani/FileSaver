@@ -30,10 +30,7 @@ public class EncryptionService {
 
     @Value("${cipher.algorithm:AES}")
     private String algorithm;
-
-    @Value("${filestorage.base.path:./uploads}")
-    private String sourcePath;
-
+    
     public byte[] encrypt(MultipartFile input, String passcode)
             throws IllegalBlockSizeException, BadPaddingException, IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException {

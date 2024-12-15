@@ -34,6 +34,7 @@ export default function Upload() {
                             
             }).catch((error) => {
                 //console.log(JSON.stringify(error));
+                setDownloadLink("");
                 console.error("Login failed:", error);
                 if (error.response.status === HttpStatusCode.BadRequest) {
                     setAlert("File too large");

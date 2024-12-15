@@ -9,6 +9,7 @@ export default function Retreive({ uuid }) {
     const downloadHandler = (e) => {
 
         e.preventDefault();
+        setAlert("");
         axios.get(`/retrieve/${uuid}?passcode=` + e.target.passcode.value, {
             responseType: 'blob'
         }).then(response => {
