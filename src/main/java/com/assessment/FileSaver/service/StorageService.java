@@ -67,13 +67,16 @@ public class StorageService {
     }
 
     @Scheduled(fixedRateString = "${filestorage.removal.scheduleRate:3600000}")
-    private void removeOldFiles() {
-        File[] files = new File(sourcePath).listFiles(this::expiryCheck);
+    public void removeOldFiles() {
+        File[] files = new File(sourcePath).listFiles();
         try {
             if (files == null || files.length == 0)
                 return;
-            for (File file : files)
-                Files.delete(file.toPath());
+            for (File file : files) {
+                if (this.expiryCheck(file)) {
+                    Files.delete(file.toPath());
+                }
+            }
         } catch (Exception e) {
             logger.error("old file removal failed", e);
         }

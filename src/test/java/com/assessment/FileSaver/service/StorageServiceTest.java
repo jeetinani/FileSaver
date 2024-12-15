@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 //@SpringBootTest(webEnvironment=RANDOM_PORT)
@@ -21,16 +23,16 @@ public class StorageServiceTest {
     private byte[] fileByteArray = "FileByteArray".getBytes();
     private String fileName = "fileName";
 
-    private String sourcePath = "./uploads";
+    private static String tempPath = "./tempPath";
     private int maxPermittedFileStorage = 10000000;
 
     // @Autowired
-    private StorageService storageService = new StorageService(sourcePath, 48, maxPermittedFileStorage);
+    private StorageService storageService = new StorageService(tempPath, 1, maxPermittedFileStorage);
 
     @Test
     public void testSaveFile() throws IOException {
         UUID uuid = storageService.saveFile(fileByteArray, fileName);
-        File file = new File(Paths.get(sourcePath).resolve(uuid.toString()).toString());
+        File file = new File(Paths.get(tempPath).resolve(uuid.toString()).toString());
         assertTrue(file.exists() && file.isFile());
         assertEquals(fileName, storageService.getFileName(uuid));
         try (FileInputStream fis = new FileInputStream(file)) {
@@ -61,10 +63,31 @@ public class StorageServiceTest {
     }
 
     @Test
+    public void testOldFileRemoval() throws IOException {
+        storageService = new StorageService(tempPath, 0, maxPermittedFileStorage);
+        UUID uuid = storageService.saveFile(fileByteArray, fileName);
+        storageService.removeOldFiles();
+        assertFalse(storageService.retrieveFile(uuid).exists());
+    }
+
+    @Test
     public void testCleanup() throws IOException {
         UUID uuid = storageService.saveFile(fileByteArray, fileName);
         storageService.cleanUp();
-        File file = new File(Paths.get(sourcePath).resolve(uuid.toString()).toString());
+        File file = new File(Paths.get(tempPath).resolve(uuid.toString()).toString());
         assertFalse(file.exists());
+    }
+
+    @AfterAll
+    public static void cleanUp() {
+        try {
+            File f = Paths.get(tempPath).toFile();
+            if (f.exists() && f.isDirectory()) {
+                FileUtils.cleanDirectory(f);
+                f.delete();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
