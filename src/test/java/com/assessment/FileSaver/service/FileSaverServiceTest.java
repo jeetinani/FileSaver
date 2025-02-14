@@ -32,8 +32,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.assessment.response.DownloadResponseDTO;
-import com.assessment.response.UploadResponseDTO;
+import com.assessment.FileSaver.response.DownloadResponseDTO;
+import com.assessment.FileSaver.response.UploadResponseDTO;
 
 //@SpringBootTest(webEnvironment = RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)

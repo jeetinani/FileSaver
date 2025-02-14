@@ -34,9 +34,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.assessment.FileSaver.response.DownloadResponseDTO;
+import com.assessment.FileSaver.response.UploadResponseDTO;
 import com.assessment.FileSaver.service.FileSaverService;
-import com.assessment.response.DownloadResponseDTO;
-import com.assessment.response.UploadResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 //@SpringBootTest(webEnvironment = RANDOM_PORT)

@@ -1,4 +1,4 @@
-package com.assessment.response;
+package com.assessment.FileSaver.response;
 
 import java.io.Serializable;
 

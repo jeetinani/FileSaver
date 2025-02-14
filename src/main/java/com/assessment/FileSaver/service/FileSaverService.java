@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.assessment.response.DownloadResponseDTO;
-import com.assessment.response.UploadResponseDTO;
+import com.assessment.FileSaver.response.DownloadResponseDTO;
+import com.assessment.FileSaver.response.UploadResponseDTO;
 
 @Service
 public class FileSaverService {

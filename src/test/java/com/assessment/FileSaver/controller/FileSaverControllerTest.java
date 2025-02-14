@@ -35,9 +35,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import com.assessment.FileSaver.response.UploadResponseDTO;
 import com.assessment.FileSaver.service.EncryptionService;
 import com.assessment.FileSaver.service.StorageService;
-import com.assessment.response.UploadResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)

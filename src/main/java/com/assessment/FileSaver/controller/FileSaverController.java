@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.assessment.FileSaver.response.DownloadResponseDTO;
+import com.assessment.FileSaver.response.UploadResponseDTO;
 import com.assessment.FileSaver.service.FileSaverService;
-import com.assessment.response.DownloadResponseDTO;
-import com.assessment.response.UploadResponseDTO;
 
 @RestController
 public class FileSaverController {
