@@ -1,15 +1,14 @@
-package com.assessment.FileSaver.controller;
+package com.assessment.FileSaver.service;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,17 +33,14 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.assessment.FileSaver.service.EncryptionService;
-import com.assessment.FileSaver.service.FileSaverService;
-import com.assessment.FileSaver.service.StorageService;
 import com.assessment.response.DownloadResponseDTO;
 import com.assessment.response.UploadResponseDTO;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 //@SpringBootTest(webEnvironment = RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)
-public class FileSaverControllerUnitTest {
+public class FileSaverServiceTest {
 
     MockMultipartFile mockFile = new MockMultipartFile("testRandomFile", "testRandomFileOriginalName", "text",
             "File text".getBytes());
@@ -55,10 +51,13 @@ public class FileSaverControllerUnitTest {
     UUID uuid = UUID.randomUUID();
 
     @Mock
-    private FileSaverService fileSaverService;
+    private StorageService storageService;
+
+    @Mock
+    private EncryptionService encryptionService;
 
     @InjectMocks
-    private FileSaverController fileSaverController;
+    private FileSaverService fileSaverService;
 
     @Test
     public void testUpload() throws IOException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,
@@ -68,51 +67,50 @@ public class FileSaverControllerUnitTest {
         mockRequest.setContextPath("/testContextPath");
         ServletRequestAttributes attributes = new ServletRequestAttributes(mockRequest);
         RequestContextHolder.setRequestAttributes(attributes);
-        when(fileSaverService.upload(mockFile, passcode))
-                .thenReturn(new UploadResponseDTO("Uploaded", "retrievePath" + uuid.toString()));
-        ResponseEntity<?> resp = fileSaverController.upload(mockFile, passcode);
-        assertEquals(HttpStatus.OK, resp.getStatusCode());
-        UploadResponseDTO responseDTO = new ObjectMapper().convertValue(resp.getBody(), UploadResponseDTO.class);
+        when(encryptionService.encrypt(mockFile, passcode)).thenReturn(encryptedFileBytes);
+        when(storageService.saveFile(encryptedFileBytes, mockFile.getOriginalFilename())).thenReturn(uuid);
+        UploadResponseDTO resp = fileSaverService.upload(mockFile, passcode);
+        assertEquals("Uploaded", resp.getUploadStatus());
         assertEquals(uuid.toString(),
-                responseDTO.getRetrievePath().substring(responseDTO.getRetrievePath().length() - 36));
+                resp.getRetrievePath().substring(resp.getRetrievePath().length() - 36));
     }
 
     @Test
     public void testLargeUpload() throws IOException, InvalidKeyException, IllegalBlockSizeException,
             BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException {
-        when(fileSaverService.upload(mockFile, passcode))
-                .thenThrow(IllegalArgumentException.class);
-        ResponseEntity<?> resp = fileSaverController.upload(mockFile, passcode);
-        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        when(encryptionService.encrypt(any(MultipartFile.class), any(String.class))).thenReturn(encryptedFileBytes);
+        when(storageService.saveFile(any(byte[].class), any(String.class))).thenThrow(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> fileSaverService.upload(mockFile, passcode));
     }
 
     @Test
     public void testDownload() throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException,
             NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException, IOException {
         File file = new File("randomFile");
-        when(fileSaverService.download(uuid, passcode))
-                .thenReturn(new DownloadResponseDTO(new ByteArrayResource(mockFile.getBytes()), file.getName()));
-        ResponseEntity<?> resp = fileSaverController.download(uuid, passcode);
-        assertEquals(HttpStatus.OK, resp.getStatusCode());
-        assertTrue(resp.getHeaders().get("content-disposition").get(0).contains(file.getName()));
-        assertInstanceOf(ByteArrayResource.class, resp.getBody());
-        assertArrayEquals(mockFile.getBytes(), ((ByteArrayResource) resp.getBody()).getByteArray());
+        when(storageService.retrieveFile(uuid)).thenReturn(file);
+        when(encryptionService.decrypt(file, passcode)).thenReturn(mockFile.getBytes());
+        when(storageService.getFileName(uuid)).thenReturn(file.getName());
+        DownloadResponseDTO resp = fileSaverService.download(uuid, passcode);
+        assertEquals(file.getName(), resp.getOriginalFileName());
+        assertInstanceOf(ByteArrayResource.class, resp.getResource());
+        assertArrayEquals(mockFile.getBytes(), ((ByteArrayResource) resp.getResource()).getByteArray());
         Files.deleteIfExists(file.toPath());
     }
 
     @Test
     public void testWrongPasscodeDownload() throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException,
             NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException, IOException {
-        when(fileSaverService.download(uuid, passcode)).thenThrow(BadPaddingException.class);
-        ResponseEntity<?> resp = fileSaverController.download(uuid, passcode);
-        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        File file = new File("randomFile");
+        when(storageService.retrieveFile(uuid)).thenReturn(file);
+        when(encryptionService.decrypt(file, passcode)).thenThrow(BadPaddingException.class);
+        assertThrows(BadPaddingException.class, () -> fileSaverService.download(uuid, passcode));
+
     }
 
     @Test
     public void testWrongLinkDownload() throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException,
             NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException, IOException {
-        when(fileSaverService.download(any(UUID.class), anyString())).thenThrow(FileNotFoundException.class);
-        ResponseEntity<?> resp = fileSaverController.download(UUID.randomUUID(), passcode);
-        assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
+        when(storageService.retrieveFile(any(UUID.class))).thenThrow(FileNotFoundException.class);
+        assertThrows(FileNotFoundException.class, () -> fileSaverService.download(UUID.randomUUID(), passcode));
     }
 }

@@ -7,8 +7,6 @@ import javax.crypto.BadPaddingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,10 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.assessment.FileSaver.service.EncryptionService;
-import com.assessment.FileSaver.service.StorageService;
+import com.assessment.FileSaver.service.FileSaverService;
+import com.assessment.response.DownloadResponseDTO;
 import com.assessment.response.UploadResponseDTO;
 
 @RestController
@@ -31,25 +28,18 @@ public class FileSaverController {
 
     Logger logger = LoggerFactory.getLogger(FileSaverController.class.getName());
 
-    private EncryptionService encryptionService;
+    FileSaverService fileSaverService;
 
-    private StorageService storageService;
-
-    public FileSaverController(EncryptionService encryptionService, StorageService storageService) {
-        this.encryptionService = encryptionService;
-        this.storageService = storageService;
+    public FileSaverController(FileSaverService fileSaverService) {
+        this.fileSaverService = fileSaverService;
     }
 
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file,
             @RequestParam("passcode") String passcode) {
         try {
-            UUID uuid = storageService.saveFile(encryptionService.encrypt(file, passcode), file.getOriginalFilename());
-            logger.info(file.getOriginalFilename() + " Stored with passcode " + passcode);
-            String retrievePath = ServletUriComponentsBuilder.fromCurrentContextPath().replacePath("/download/")
-                    .toUriString();
-            return ResponseEntity.ok(new UploadResponseDTO("Uploaded",
-                    retrievePath + uuid.toString()));
+            UploadResponseDTO uploadResponseDTO = fileSaverService.upload(file, passcode);
+            return ResponseEntity.ok(uploadResponseDTO);
         } catch (IllegalArgumentException iae) {
             return new ResponseEntity<String>("File too large", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -67,13 +57,12 @@ public class FileSaverController {
     public ResponseEntity<?> download(@PathVariable(value = "uuid", required = true) UUID uuid,
             @RequestParam("passcode") String passcode) {
         try {
-            Resource resource = new ByteArrayResource(
-                    encryptionService.decrypt(storageService.retrieveFile(uuid), passcode));
-            if (resource.exists()) {
+        DownloadResponseDTO downloadResponseDTO = fileSaverService.download(uuid, passcode);
+            if (downloadResponseDTO.getResource().exists()) {
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_DISPOSITION,
-                                "attachment; filename=\"" + storageService.getFileName(uuid) + "\"")
-                        .body(resource);
+                                "attachment; filename=\"" + downloadResponseDTO.getOriginalFileName() + "\"")
+                        .body(downloadResponseDTO.getResource());
             }
         } catch (BadPaddingException bpe) {
             return new ResponseEntity<String>("bad passcode", HttpStatus.BAD_REQUEST);
