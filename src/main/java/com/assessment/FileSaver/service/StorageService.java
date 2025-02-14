@@ -16,8 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.assessment.FileSaver.domain.FileDetails;
-
 @Component
 public class StorageService {
 
