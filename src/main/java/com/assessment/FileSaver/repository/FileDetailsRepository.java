@@ -12,5 +12,5 @@ import com.assessment.FileSaver.domain.FileDetails;
 @Repository
 public interface FileDetailsRepository extends JpaRepository<FileDetails, UUID> {
 
-    public List<FileDetails> findBySavedAtBefore(LocalDateTime ldt);
+    public List<UUID> findBySavedAtBefore(LocalDateTime ldt);
 }

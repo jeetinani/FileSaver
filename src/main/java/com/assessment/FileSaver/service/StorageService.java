@@ -72,13 +72,13 @@ public class StorageService {
 
     @Scheduled(fixedRateString = "${filestorage.removal.scheduleRate:3600000}")
     public void removeOldFiles() {
-        List<FileDetails> fileDetailsList = fileDetailsService.getListOfExpiredFiles(maxPermittedStorageHours);
-        if (fileDetailsList == null || fileDetailsList.size() == 0)
+        List<UUID> filesList = fileDetailsService.getListOfExpiredFiles(maxPermittedStorageHours);
+        if (filesList == null || filesList.size() == 0)
             return;
         try {
-            for (FileDetails fileDetails : fileDetailsList) {
-                Files.delete(Paths.get(sourcePath).resolve(fileDetails.getUuid().toString()));
-                fileDetailsService.removeFile(fileDetails.getUuid());
+            for (UUID uuid : filesList) {
+                Files.delete(Paths.get(sourcePath).resolve(uuid.toString()));
+                fileDetailsService.removeFile(uuid);
             }
         } catch (IOException e) {
             e.printStackTrace();

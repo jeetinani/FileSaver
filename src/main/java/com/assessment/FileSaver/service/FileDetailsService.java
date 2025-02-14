@@ -35,7 +35,7 @@ public class FileDetailsService {
         fileDetailsRepository.deleteById(uuid);
     }
 
-    public List<FileDetails> getListOfExpiredFiles(int maxPermittedStorageHours){
+    public List<UUID> getListOfExpiredFiles(int maxPermittedStorageHours){
         return fileDetailsRepository.findBySavedAtBefore(LocalDateTime.now().minusHours(maxPermittedStorageHours));
     }
 }

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -37,18 +36,15 @@ public class StorageServiceTest {
 
     private static String tempPath = "./tempPath";
     private int maxPermittedFileStorage = 10000000;
-    private FileDetails fileDetails = new FileDetails(fileName,UUID.randomUUID(),LocalDateTime.now(),1,true);
+    private FileDetails fileDetails = new FileDetails(fileName, UUID.randomUUID(), LocalDateTime.now(), 1, true);
 
     // @Autowired
     @Mock
     private FileDetailsService fileDetailsService;
 
     @InjectMocks
-    private StorageService storageService = new StorageService(tempPath, 1, maxPermittedFileStorage, fileDetailsService);
-
-    @InjectMocks
-    private StorageService zeroHoursStorageService = new StorageService(tempPath, 0, maxPermittedFileStorage, fileDetailsService);
-
+    private StorageService storageService = new StorageService(tempPath, 1, maxPermittedFileStorage,
+            fileDetailsService);
 
     @Test
     public void testSaveFile() throws IOException {
@@ -89,21 +85,24 @@ public class StorageServiceTest {
         assertThrows(FileNotFoundException.class, () -> storageService.retrieveFile(UUID.randomUUID()));
     }
 
-    /* @Test
-    public void testCleanup() throws IOException {
-        when(fileDetailsService.saveFileDetails(any(String.class))).thenReturn(fileDetails);
-        UUID uuid = storageService.saveFile(fileByteArray, fileName);
-        storageService.cleanUp();
-        File file = new File(Paths.get(tempPath).resolve(uuid.toString()).toString());
-        assertFalse(file.exists());
-    } */
+    /*
+     * @Test
+     * public void testCleanup() throws IOException {
+     * when(fileDetailsService.saveFileDetails(any(String.class))).thenReturn(
+     * fileDetails);
+     * UUID uuid = storageService.saveFile(fileByteArray, fileName);
+     * storageService.cleanUp();
+     * File file = new
+     * File(Paths.get(tempPath).resolve(uuid.toString()).toString());
+     * assertFalse(file.exists());
+     * }
+     */
 
     @Test
     public void testOldFileRemoval() throws IOException {
-        //storageService = new StorageService(tempPath, 0, maxPermittedFileStorage);
         when(fileDetailsService.saveFileDetails(any(String.class))).thenReturn(fileDetails);
         when(fileDetailsService.isFilePresent(fileDetails.getUuid())).thenReturn(true);
-        when(fileDetailsService.getListOfExpiredFiles(1)).thenReturn(List.of(fileDetails));
+        when(fileDetailsService.getListOfExpiredFiles(1)).thenReturn(List.of(fileDetails.getUuid()));
         UUID uuid = storageService.saveFile(fileByteArray, fileName);
         storageService.removeOldFiles();
         assertFalse(storageService.retrieveFile(uuid).exists());
