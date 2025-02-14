@@ -9,7 +9,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,9 +34,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.assessment.FileSaver.service.EncryptionService;
 import com.assessment.FileSaver.service.FileSaverService;
-import com.assessment.FileSaver.service.StorageService;
 import com.assessment.response.DownloadResponseDTO;
 import com.assessment.response.UploadResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
