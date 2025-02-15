@@ -61,6 +61,7 @@ public class StorageService {
         if (!fileDetailsService.isFilePresent(uuid)) {
             throw new FileNotFoundException();
         }
+        fileDetailsService.incrementDownloadCount(uuid);
         return new File(Paths.get(sourcePath).resolve(uuid.toString()).toString());
     }
 

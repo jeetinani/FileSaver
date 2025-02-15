@@ -77,6 +77,10 @@ public class FileDetails {
         this.downloadCount = downloadCount;
     }
 
+    public void incrementDownloadCount() {
+        this.downloadCount += 1;
+    }
+
     public boolean isActive() {
         return isActive;
     }
@@ -84,5 +88,4 @@ public class FileDetails {
     public void setActive(boolean isActive) {
         this.isActive = isActive;
     }
-
 }

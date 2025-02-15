@@ -38,4 +38,10 @@ public class FileDetailsService {
     public List<UUID> getListOfExpiredFiles(int maxPermittedStorageHours){
         return fileDetailsRepository.findBySavedAtBefore(LocalDateTime.now().minusHours(maxPermittedStorageHours));
     }
+
+    public void incrementDownloadCount(UUID uuid) {
+        FileDetails fileDetails = fileDetailsRepository.findById(uuid).get();
+        fileDetails.incrementDownloadCount();
+        fileDetailsRepository.save(fileDetails);
+    }
 }
