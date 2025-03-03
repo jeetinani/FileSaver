@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -36,7 +37,7 @@ public class FileDetailsService {
     }
 
     public List<UUID> getListOfExpiredFiles(int maxPermittedStorageHours){
-        return fileDetailsRepository.findBySavedAtBefore(LocalDateTime.now().minusHours(maxPermittedStorageHours));
+        return fileDetailsRepository.findBySavedAtBefore(LocalDateTime.now().minusHours(maxPermittedStorageHours)).stream().map(fileDetails->fileDetails.getUuid()).collect(Collectors.toList());
     }
 
     public void incrementDownloadCount(UUID uuid) {
