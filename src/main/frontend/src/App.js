@@ -1,17 +1,22 @@
 import { Route, Routes } from 'react-router-dom';
 import './App.css';
-import Layout from "./components/Layout";
 import Upload from "./components/Upload";
-import Retreive from "./components/Retreive";
+import NavBar from "./components/NavBar";
 
 
 function App() {
   return (
-    <Routes>
-      <Route path='/' element={<Layout />}>
+    <>
+    <NavBar/>
+    <div className="container">
+      <Routes>
         <Route index path='/' element={<Upload />} />
-      </Route>
-    </Routes>
+        {/* <Route path='/' element={<Layout />}>
+          <Route index path='/' element={<Upload />} />
+        </Route> */}
+      </Routes>
+    </div>
+    </>
   );
 }
 
